@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SampleConnector</string>
+
+    <string name="str_wifi">WiFi</string>
+    <string name="str_bluetooth">BT</string>
+    <string name="str_usb">USB</string>
+    <string name="str_add">ADD</string>
+    <string name="str_send">SEND</string>
+
+</resources>
