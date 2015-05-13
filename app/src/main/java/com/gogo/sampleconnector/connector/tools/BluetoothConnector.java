@@ -116,8 +116,10 @@ public class BluetoothConnector extends BaseConnector {
             try {
                 BluetoothSocket socket = device.createRfcommSocketToServiceRecord(PRINTER_UUID);
                 socket.connect();
+                mHandler.obtainMessage(BaseConnector.CONNECT_STATUS, true).sendToTarget();
                 controller.setupConnection(socket);
             } catch (IOException e) {
+                mHandler.obtainMessage(BaseConnector.CONNECT_STATUS, false).sendToTarget();
                 Log.e(TAG, "Failed to create bluetooth socket: " + e);
             }
         }

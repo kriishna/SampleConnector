@@ -139,6 +139,16 @@ public class Main extends Activity {
                             }
                         }
                     });
+                    fragment.setOnConnectionEstablishedListener(new Connector.OnConnectionEstablishedListener() {
+                        @Override
+                        public void onConnectionEstablish(boolean isConnected) {
+                            if (isConnected) {
+                                Toast.makeText(Main.this, "Connection established", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(Main.this, "Failed to establish connection", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
                     fragment.show(getFragmentManager(), "tag");
                 } catch (IllegalAccessException | InstantiationException e) {
                     Log.e(TAG, "Failed to init class " + cls.getSimpleName());

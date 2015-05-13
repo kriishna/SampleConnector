@@ -48,7 +48,7 @@ public class UsbController extends Controller {
 
     @Override
     public boolean send(final byte[] data) {
-        if (createConnection()) {
+        if (null != usbBroadcastReceiver && createConnection()) {
             Executors.newSingleThreadExecutor().submit(new Runnable() {
                 @Override
                 public void run() {

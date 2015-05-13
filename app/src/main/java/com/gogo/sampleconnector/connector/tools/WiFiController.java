@@ -46,6 +46,7 @@ public class WiFiController extends Controller {
     }
 
     public boolean send(final byte[] data) {
+        if (null == data) return true;
         if (null != mSocket && mSocket.isConnected()) {
             Executors.newSingleThreadExecutor().execute(new Runnable() {
                 @Override

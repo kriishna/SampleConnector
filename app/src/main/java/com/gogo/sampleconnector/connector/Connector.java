@@ -17,4 +17,11 @@ public abstract class Connector extends DialogFragment {
     public interface OnAddressSelectedListener {
         void onAddressSelect(Connector connector);
     }
+
+    /**
+     * Interface definition for a callback to be invoked when a connection is established.
+     */
+    public interface OnConnectionEstablishedListener {
+        public void onConnectionEstablish(boolean isConnected);
+    }
 }

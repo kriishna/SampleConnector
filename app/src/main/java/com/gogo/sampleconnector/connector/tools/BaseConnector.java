@@ -1,6 +1,8 @@
 package com.gogo.sampleconnector.connector.tools;
 
-
+import android.app.FragmentManager;
+import android.os.Handler;
+import android.os.Message;
 import android.view.ViewGroup;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -16,7 +18,34 @@ import java.util.ArrayList;
  */
 public class BaseConnector extends Connector {
 
+    public static final int CONNECT_STATUS = 0x02;
+
+    protected Handler mHandler;
+
     public OnAddressSelectedListener mOnAddressSelectedListener;
+    public OnConnectionEstablishedListener mOnConnectionEstablishedListener;
+
+    /**
+     * Set up Handler when fragment is ready to show.
+     *
+     * @param manager
+     * @param tag
+     */
+    @Override
+    public void show(FragmentManager manager, String tag) {
+        super.show(manager, tag);
+        // A handler to run notify method on main thread.
+        mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case CONNECT_STATUS:
+                        notifyConnectionEstablished((boolean) msg.obj);
+                        break;
+                }
+            }
+        };
+    }
 
     /**
      * Create ListView for dialog.
@@ -54,12 +83,39 @@ public class BaseConnector extends Connector {
     }
 
     /**
+     * Call this view's OnConnectionEstablishedListener if it
+     * is defined.
+     *
+     * @return True there was an assigned OnConnectionEstablishedListener
+     *          that was called, false otherwise is returned.
+     */
+    protected boolean notifyConnectionEstablished(boolean isConnected) {
+        final boolean result;
+        if (null != mOnConnectionEstablishedListener) {
+            mOnConnectionEstablishedListener.onConnectionEstablish(isConnected);
+            result = true;
+        } else {
+            result = false;
+        }
+        return result;
+    }
+
+    /**
      * Register a callback to be invoked when address is clicked.
      *
      * @param li The callback that will run
      */
     public void setOnAddressSelectedListener(Connector.OnAddressSelectedListener li) {
         mOnAddressSelectedListener = li;
+    }
+
+    /**
+     * Register a callback to be invoked when connection is established.
+     *
+     * @param li The callback that will run
+     */
+    public void setOnConnectionEstablishedListener(OnConnectionEstablishedListener li) {
+        mOnConnectionEstablishedListener = li;
     }
 
     public Controller getController() throws IOException {

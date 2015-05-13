@@ -118,15 +118,25 @@ public class WiFiConnector extends BaseConnector {
                 wifiSocket = new Socket();
                 wifiSocket.connect(new InetSocketAddress(this.address, this.port), 1000);
                 if (wifiSocket.isConnected()) {
+                    Log.d(TAG, "Connection established successfully.");
+                    sendConnectResultMessage(true);
                     controller.setupConnection(wifiSocket);
                 } else {
+                    Log.e(TAG, "Socket is not connected.");
+                    sendConnectResultMessage(false);
                     throw new IOException("Socket is not connected!");
                 }
             } catch (UnknownHostException e) {
+                sendConnectResultMessage(false);
                 Log.e(TAG, "Address is unknown: " + e);
             } catch (NullPointerException|IOException e) {
+                sendConnectResultMessage(false);
                 Log.e(TAG, "Failed to create socket: " + e);
             }
+        }
+
+        private void sendConnectResultMessage(final boolean result) {
+            mHandler.obtainMessage(BaseConnector.CONNECT_STATUS, result).sendToTarget();
         }
     }
 
