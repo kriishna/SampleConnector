@@ -12,7 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:id="@+id/ll_connect_options">
 
         <Button
             android:layout_width="@dimen/btn_width"
@@ -32,7 +33,19 @@
             android:text="@string/str_usb"
             android:id="@+id/btn_usb_connect"/>
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/btn_height"
+            android:text="@string/str_disconnect"
+            android:id="@+id/btn_disconnect"/>
+
     </LinearLayout>
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/message_box_height"
+        android:layout_below="@id/ll_connect_options"
+        android:id="@+id/lv_message_box"/>
 
     <LinearLayout
         android:layout_width="match_parent"

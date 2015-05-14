@@ -6,8 +6,12 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.gogo244.commandcombiner.CommandCombiner;
@@ -28,6 +32,10 @@ public class Main extends Activity {
     public static final String TAG = Main.class.getSimpleName();
     public static final int COMMAND_REQUEST = 0x01;
 
+    private final int DEBUG = 0x0a;
+    private final int WARN = 0x0b;
+    ArrayAdapter<ColoredMessage> mMessageBoxAdapter;
+
     private Controller controller;
 
     private byte[] command = null;
@@ -42,7 +50,11 @@ public class Main extends Activity {
         setListener((Button) findViewById(R.id.btn_bluetooth_connect), BluetoothConnector.class);
         setListener((Button) findViewById(R.id.btn_usb_connect), UsbConnector.class);
 
+        setupDisconnectButton();
+        setupDebugger();
         setupInputBox();
+
+        stackMessage("Please select a connection type ...", DEBUG);
     }
 
     @Override
@@ -58,13 +70,7 @@ public class Main extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (null != controller) {
-            try {
-                controller.closeConnection();
-            } catch (NullPointerException | IOException e) {
-                Log.e(TAG, "Failed close connection: " + e);
-            }
-        }
+        closeConnection();
     }
 
     @Override
@@ -81,6 +87,63 @@ public class Main extends Activity {
                 }
                 break;
         }
+    }
+
+
+    /**
+     * Set up disconnect button.
+     * If available connection exist, close the connection and stack message.
+     * If no available connection, stack warning message.
+     */
+    private void setupDisconnectButton() {
+        ((Button) findViewById(R.id.btn_disconnect)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                closeConnection();
+            }
+        });
+    }
+
+    /**
+     * Close connection if it's available.
+     */
+    private void closeConnection() {
+        if (null != controller) {
+            try {
+                controller.closeConnection();
+                controller = null;
+                stackMessage("Close connection.", DEBUG);
+            } catch (NullPointerException | IOException e) {
+                Log.e(TAG, "Failed close connection: " + e);
+                stackMessage("Failed to close connection: " + e, WARN);
+            }
+        } else {
+            stackMessage("No available connection.", WARN);
+        }
+    }
+
+    /**
+     * Set up ListView for debugging.
+     */
+    private void setupDebugger() {
+        mMessageBoxAdapter = new ArrayAdapter<ColoredMessage>(this, R.layout.message) {
+            @Override
+            public View getView(int pos, View convertView, ViewGroup parent) {
+                TextView tv = new TextView(Main.this);
+                tv.setTextSize(getResources().getDimension(R.dimen.message_text_size));
+                switch (getItem(pos).getLevel()) {
+                    case DEBUG:
+                        tv.setTextColor(getResources().getColor(R.color.debug_msg_color));
+                        break;
+                    case WARN:
+                        tv.setTextColor(getResources().getColor(R.color.warning_msg_color));
+                        break;
+                }
+                tv.setText(getItem(pos).getMessage());
+                return tv;
+            }
+        };
+        ((ListView) findViewById(R.id.lv_message_box)).setAdapter(mMessageBoxAdapter);
     }
 
     /**
@@ -141,12 +204,22 @@ public class Main extends Activity {
                     });
                     fragment.setOnConnectionEstablishedListener(new Connector.OnConnectionEstablishedListener() {
                         @Override
-                        public void onConnectionEstablish(boolean isConnected) {
-                            if (isConnected) {
-                                Toast.makeText(Main.this, "Connection established", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(Main.this, "Failed to establish connection", Toast.LENGTH_SHORT).show();
+                        public void onConnectionEstablish(int status) {
+                            String popMessage = "";
+                            switch (status) {
+                                case Connector.ConnectionStatus.SUCCEED:
+                                    popMessage = "Connection established";
+                                    break;
+                                case Connector.ConnectionStatus.FAIL:
+                                    controller = null;
+                                    popMessage = "Failed to establish connection";
+                                    break;
+                                case Connector.ConnectionStatus.NO_DEVICE:
+                                    controller = null;
+                                    popMessage = "No device available";
+                                    break;
                             }
+                            Toast.makeText(Main.this, popMessage, Toast.LENGTH_SHORT).show();
                         }
                     });
                     fragment.show(getFragmentManager(), "tag");
@@ -157,5 +230,29 @@ public class Main extends Activity {
         });
     }
 
+    private void stackMessage(String msg, int level) {
+        ColoredMessage coloredMessage = new ColoredMessage(level, msg);
+        mMessageBoxAdapter.add(coloredMessage);
+    }
+
     private final UsbBroadcastReceiver usbBroadcastReceiver = new UsbBroadcastReceiver(Main.this);
+
+    private class ColoredMessage {
+        int level;
+        String message;
+
+        public ColoredMessage(int l, String msg) {
+            this.level = l;
+            this.message = msg;
+        }
+
+        public int getLevel() {
+            return this.level;
+        }
+
+        public String getMessage() {
+            return this.message;
+        }
+
+    }
 }

@@ -8,5 +8,6 @@
     <string name="str_usb">USB</string>
     <string name="str_add">ADD</string>
     <string name="str_send">SEND</string>
+    <string name="str_disconnect">Disconnect</string>
 
 </resources>

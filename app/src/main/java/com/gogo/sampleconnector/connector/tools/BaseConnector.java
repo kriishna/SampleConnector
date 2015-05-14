@@ -40,7 +40,7 @@ public class BaseConnector extends Connector {
             public void handleMessage(Message msg) {
                 switch (msg.what) {
                     case CONNECT_STATUS:
-                        notifyConnectionEstablished((boolean) msg.obj);
+                        notifyConnectionEstablished((int) msg.obj);
                         break;
                 }
             }
@@ -89,10 +89,10 @@ public class BaseConnector extends Connector {
      * @return True there was an assigned OnConnectionEstablishedListener
      *          that was called, false otherwise is returned.
      */
-    protected boolean notifyConnectionEstablished(boolean isConnected) {
+    protected boolean notifyConnectionEstablished(int status) {
         final boolean result;
         if (null != mOnConnectionEstablishedListener) {
-            mOnConnectionEstablishedListener.onConnectionEstablish(isConnected);
+            mOnConnectionEstablishedListener.onConnectionEstablish(status);
             result = true;
         } else {
             result = false;

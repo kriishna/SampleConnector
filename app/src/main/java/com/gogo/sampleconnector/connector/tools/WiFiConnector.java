@@ -136,7 +136,13 @@ public class WiFiConnector extends BaseConnector {
         }
 
         private void sendConnectResultMessage(final boolean result) {
-            mHandler.obtainMessage(BaseConnector.CONNECT_STATUS, result).sendToTarget();
+            if (result) {
+                mHandler.obtainMessage(BaseConnector.CONNECT_STATUS,
+                        ConnectionStatus.SUCCEED).sendToTarget();
+            } else {
+                mHandler.obtainMessage(BaseConnector.CONNECT_STATUS,
+                        ConnectionStatus.FAIL).sendToTarget();
+            }
         }
     }
 

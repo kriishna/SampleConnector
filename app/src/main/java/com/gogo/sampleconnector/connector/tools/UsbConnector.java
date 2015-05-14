@@ -16,6 +16,8 @@ import android.widget.Toast;
 import com.gogo.sampleconnector.connector.Controller;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * USB Bluetooth Connector
@@ -58,7 +60,7 @@ public class UsbConnector extends BaseConnector {
      */
     protected boolean performSelect() {
         // Register broadcast receiver in caller.
-        final boolean result = super.performSelect();
+        boolean tmp = super.performSelect();
 
         // If UsbBroadcastReceiver is not set, return.
         if (null == usbBroadcastReceiver) {
@@ -71,15 +73,22 @@ public class UsbConnector extends BaseConnector {
         usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
         if (usbManager.getDeviceList().values().iterator().hasNext()) {
             usbDevice = usbManager.getDeviceList().values().iterator().next();
+            usbManager.requestPermission(usbDevice, permissionIntent);
+            usbController.setDeviceInfo(usbBroadcastReceiver, usbDevice, usbManager);
         } else {
-            Toast.makeText(context, "No available device", Toast.LENGTH_SHORT).show();
-            return false;
+            tmp = false;
         }
-        usbManager.requestPermission(usbDevice, permissionIntent);
-
-        // Set up device info for controller
-        usbController.setDeviceInfo(usbBroadcastReceiver, usbDevice, usbManager);
-
+        final boolean result = tmp;
+        Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
+            @Override
+            public void run() {
+                if (result) {
+                    mHandler.obtainMessage(BaseConnector.CONNECT_STATUS, ConnectionStatus.SUCCEED).sendToTarget();
+                } else {
+                    mHandler.obtainMessage(BaseConnector.CONNECT_STATUS, ConnectionStatus.NO_DEVICE).sendToTarget();
+                }
+            }
+        }, 500, TimeUnit.MILLISECONDS);
         UsbConnector.this.dismiss();
         return result;
     }
