@@ -204,13 +204,14 @@ public class Main extends Activity {
                             }
                         }
                     });
-                    fragment.setOnConnectionEstablishedListener(new Connector.OnConnectionEstablishedListener() {
+                    fragment.setOnConnectionEstablishedListener(new BaseConnector.OnConnectionEstablishedListener() {
                         @Override
-                        public void onConnectionEstablish(int status) {
+                        public void onConnectionEstablish(int status, BaseConnector connector) {
                             String popMessage = "";
                             switch (status) {
                                 case Connector.ConnectionStatus.SUCCEED:
                                     popMessage = "Connection established";
+                                    stackMessage("Connection is established: " + connector.getConnectorType(), DEBUG);
                                     break;
                                 case Connector.ConnectionStatus.FAIL:
                                     controller = null;

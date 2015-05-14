@@ -16,9 +16,9 @@ import java.util.ArrayList;
 /**
  * Base Connector for Connectors
  */
-public class BaseConnector extends Connector {
+public abstract class BaseConnector extends Connector {
 
-    public static final int CONNECT_STATUS = 0x02;
+    public static final int CONNECT_STATUS = 0x0a;
 
     protected Handler mHandler;
 
@@ -46,6 +46,13 @@ public class BaseConnector extends Connector {
             }
         };
     }
+
+    /**
+     * Get connector type. Override this method in sub class.
+     *
+     * @return connector type
+     */
+    public abstract String getConnectorType();
 
     /**
      * Create ListView for dialog.
@@ -92,7 +99,7 @@ public class BaseConnector extends Connector {
     protected boolean notifyConnectionEstablished(int status) {
         final boolean result;
         if (null != mOnConnectionEstablishedListener) {
-            mOnConnectionEstablishedListener.onConnectionEstablish(status);
+            mOnConnectionEstablishedListener.onConnectionEstablish(status, BaseConnector.this);
             result = true;
         } else {
             result = false;
@@ -118,8 +125,13 @@ public class BaseConnector extends Connector {
         mOnConnectionEstablishedListener = li;
     }
 
-    public Controller getController() throws IOException {
-        throw new IOException("BaseContainer has no controller defined!");
+    public abstract Controller getController() throws IOException;
+
+    /**
+     * Interface definition for a callback to be invoked when a connection is established.
+     */
+    public interface OnConnectionEstablishedListener {
+        public void onConnectionEstablish(int status, BaseConnector connector);
     }
 }
 

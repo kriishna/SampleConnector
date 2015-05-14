@@ -51,6 +51,11 @@ public class WiFiConnector extends BaseConnector {
     }
 
     @Override
+    public String getConnectorType() {
+        return "WiFi";
+    }
+
+    @Override
     protected ListView prepareListView(final ArrayList<String> list) {
         ListView listview = super.prepareListView(list);
 

@@ -18,13 +18,6 @@ public abstract class Connector extends DialogFragment {
         void onAddressSelect(Connector connector);
     }
 
-    /**
-     * Interface definition for a callback to be invoked when a connection is established.
-     */
-    public interface OnConnectionEstablishedListener {
-        public void onConnectionEstablish(int status);
-    }
-
     public class ConnectionStatus {
         public static final int SUCCEED = 0x01;
         public static final int FAIL = 0x02;

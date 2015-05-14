@@ -51,6 +51,11 @@ public class BluetoothConnector extends BaseConnector {
     }
 
     @Override
+    public String getConnectorType() {
+        return "Bluetooth";
+    }
+
+    @Override
     protected ListView prepareListView(final ArrayList<String> list) {
         ListView listview = super.prepareListView(list);
 

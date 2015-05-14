@@ -52,6 +52,11 @@ public class UsbConnector extends BaseConnector {
 
     }
 
+    @Override
+    public String getConnectorType() {
+        return "USB";
+    }
+
     /**
      * Create permission request intent.
      *
