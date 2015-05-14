@@ -34,7 +34,8 @@ public class Main extends Activity {
 
     private final int DEBUG = 0x0a;
     private final int WARN = 0x0b;
-    ArrayAdapter<ColoredMessage> mMessageBoxAdapter;
+    private ListView mMessageBox;
+    private ArrayAdapter<ColoredMessage> mMessageBoxAdapter;
 
     private Controller controller;
 
@@ -126,6 +127,7 @@ public class Main extends Activity {
      * Set up ListView for debugging.
      */
     private void setupDebugger() {
+        mMessageBox = (ListView) findViewById(R.id.lv_message_box);
         mMessageBoxAdapter = new ArrayAdapter<ColoredMessage>(this, R.layout.message) {
             @Override
             public View getView(int pos, View convertView, ViewGroup parent) {
@@ -143,7 +145,7 @@ public class Main extends Activity {
                 return tv;
             }
         };
-        ((ListView) findViewById(R.id.lv_message_box)).setAdapter(mMessageBoxAdapter);
+        mMessageBox.setAdapter(mMessageBoxAdapter);
     }
 
     /**
@@ -233,6 +235,7 @@ public class Main extends Activity {
     private void stackMessage(String msg, int level) {
         ColoredMessage coloredMessage = new ColoredMessage(level, msg);
         mMessageBoxAdapter.add(coloredMessage);
+        mMessageBox.setSelection(mMessageBoxAdapter.getCount() - 1);
     }
 
     private final UsbBroadcastReceiver usbBroadcastReceiver = new UsbBroadcastReceiver(Main.this);
