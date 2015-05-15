@@ -22,7 +22,6 @@ public class UsbController extends BaseController {
 
     private final int TIMEOUT = 300;
 
-    UsbBroadcastReceiver usbBroadcastReceiver;
     UsbManager usbManager;
     UsbDevice usbDevice;
     UsbDeviceConnection usbDeviceConnection;
@@ -30,9 +29,7 @@ public class UsbController extends BaseController {
     UsbEndpoint endpointIn;
     UsbEndpoint endpointOut;
 
-    public void setDeviceInfo(UsbBroadcastReceiver receiver, UsbDevice device, UsbManager manager) throws NullPointerException {
-        if (null == receiver) throw new NullPointerException("receiver is null!");
-        usbBroadcastReceiver = receiver;
+    public void setDeviceInfo(UsbDevice device, UsbManager manager) throws NullPointerException {
         usbDevice = device;
         usbManager = manager;
         usbInterface = usbDevice.getInterface(0);
@@ -48,7 +45,7 @@ public class UsbController extends BaseController {
 
     @Override
     public boolean send(final byte[] data) {
-        if (null != usbBroadcastReceiver && createConnection()) {
+        if (createConnection()) {
             Executors.newSingleThreadExecutor().submit(new Runnable() {
                 @Override
                 public void run() {
@@ -63,7 +60,7 @@ public class UsbController extends BaseController {
 
     private boolean createConnection() {
         final boolean result;
-        if (usbBroadcastReceiver.hasGranted() && null == usbDeviceConnection) {
+        if ( null == usbDeviceConnection) {
             usbDeviceConnection = usbManager.openDevice(usbDevice);
             usbDeviceConnection.claimInterface(usbInterface, true);
             Log.d(TAG, "Usb connection is established.");
@@ -78,7 +75,6 @@ public class UsbController extends BaseController {
 
     @Override
     public void closeConnection() throws NullPointerException, IOException {
-        if (!usbBroadcastReceiver.hasGranted()) return;
         if (null == usbDeviceConnection) return;
         usbDeviceConnection.close();
     }

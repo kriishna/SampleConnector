@@ -17,40 +17,30 @@ public class UsbBroadcastReceiver extends BroadcastReceiver {
 
     public static final String ACTION_USB_PERMISSION = "com.example.lichiachen.siitestconnector.siiusbconnector.USB_PERMISSION";
 
-    /**
-     * Application information for sending USB granting broadcast in UsbConnector.
-     */
-    private Context context;
-    private boolean isGranted = false;
+    private UsbConnector connector;
 
-    public UsbBroadcastReceiver(Context context) {
-        this.context = context;
+    public UsbBroadcastReceiver(UsbConnector connector) {
+        this.connector = connector;
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         Log.d(TAG, "onReceive() is called");
+        if (null == connector) {
+            Log.e(TAG, "Usb connector is not set!");
+            return;
+        }
         if (ACTION_USB_PERMISSION.equals(action)) {
             synchronized (this) {
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                     Log.d(TAG, "USB permission granted.");
-                    isGranted = true;
-                    //usbDevice = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    connector.retrieveConnectionResult(true);
                 } else {
                     Log.e(TAG, "Failed to get permission!");
+                    connector.retrieveConnectionResult(false);
                 }
             }
         }
     }
-
-    public Context getApplicationContextInfo() throws NullPointerException {
-        if (null == context) throw new NullPointerException("Context is null!");
-        return context;
-    }
-
-    public boolean hasGranted() {
-        return isGranted;
-    }
-
 }

@@ -8,7 +8,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import com.gogo.sampleconnector.connector.Connector;
-import com.gogo.sampleconnector.connector.Controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,7 +39,11 @@ public abstract class BaseConnector extends Connector {
             public void handleMessage(Message msg) {
                 switch (msg.what) {
                     case CONNECT_STATUS:
-                        notifyConnectionEstablished((int) msg.obj);
+                        if ( msg.arg1 == ConnectionStatus.SUCCEED) {
+                            notifyConnectionEstablished(true, null);
+                        } else {
+                            notifyConnectionEstablished(false, (String) msg.obj);
+                        }
                         break;
                 }
             }
@@ -96,10 +99,10 @@ public abstract class BaseConnector extends Connector {
      * @return True there was an assigned OnConnectionEstablishedListener
      *          that was called, false otherwise is returned.
      */
-    protected boolean notifyConnectionEstablished(int status) {
+    protected boolean notifyConnectionEstablished(boolean connectResult, String reason) {
         final boolean result;
         if (null != mOnConnectionEstablishedListener) {
-            mOnConnectionEstablishedListener.onConnectionEstablish(status, BaseConnector.this);
+            mOnConnectionEstablishedListener.onConnectionEstablish(connectResult, reason, this);
             result = true;
         } else {
             result = false;
@@ -137,7 +140,7 @@ public abstract class BaseConnector extends Connector {
      * Interface definition for a callback to be invoked when a connection is established.
      */
     public interface OnConnectionEstablishedListener {
-        public void onConnectionEstablish(int status, BaseConnector connector);
+        public void onConnectionEstablish(boolean result, String reason, BaseConnector connector) ;
     }
 }
 

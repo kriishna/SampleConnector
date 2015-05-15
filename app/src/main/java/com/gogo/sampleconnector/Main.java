@@ -2,7 +2,6 @@ package com.gogo.sampleconnector;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -60,13 +59,20 @@ public class Main extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
+        /*
         try {
             unregisterReceiver(usbBroadcastReceiver);
         } catch (IllegalArgumentException e) {
             Log.e(TAG, "" + e);
         }
+        */
     }
 
     @Override
@@ -191,12 +197,6 @@ public class Main extends Activity {
                     fragment.setOnAddressSelectedListener(new Connector.OnAddressSelectedListener() {
                         @Override
                         public void onAddressSelect(Connector connector) {
-                            // Grant usb permission
-                            if (connector instanceof UsbConnector) {
-                                ((UsbConnector) connector).setUsbBroadcastReceiver(usbBroadcastReceiver);
-                                Main.this.registerReceiver(usbBroadcastReceiver,
-                                        new IntentFilter(UsbBroadcastReceiver.ACTION_USB_PERMISSION));
-                            }
                             try {
                                 controller = ((BaseConnector) connector).getController();
                             } catch (IOException e) {
@@ -206,30 +206,23 @@ public class Main extends Activity {
                     });
                     fragment.setOnConnectionEstablishedListener(new BaseConnector.OnConnectionEstablishedListener() {
                         @Override
-                        public void onConnectionEstablish(int status, BaseConnector connector) {
+                        public void onConnectionEstablish(boolean result, String reason, BaseConnector connector) {
                             String popMessage = "";
-                            switch (status) {
-                                case Connector.ConnectionStatus.SUCCEED:
-                                    popMessage = "Connection established";
-                                    stackMessage("Connection is established: " + connector.getConnectorType(), DEBUG);
-                                    // If connection is established, set up OnMessageReceivedListener
-                                    // and start to run receiving thread.
-                                    controller.setOnMessageReceivedListener(new Controller.OnMessageReceivedListener() {
-                                        @Override
-                                        public void onMessageReceive(String message) {
-                                            stackMessage("Received: " + message, DEBUG);
-                                        }
-                                    });
-                                    controller.beginReceiving();
-                                    break;
-                                case Connector.ConnectionStatus.FAIL:
-                                    controller = null;
-                                    popMessage = "Failed to establish connection";
-                                    break;
-                                case Connector.ConnectionStatus.NO_DEVICE:
-                                    controller = null;
-                                    popMessage = "No device available";
-                                    break;
+                            if (result) {
+                                popMessage = "Connection established";
+                                stackMessage("Connection is established: " + connector.getConnectorType(), DEBUG);
+                                // If connection is established, set up OnMessageReceivedListener
+                                // and start to run receiving thread.
+                                controller.setOnMessageReceivedListener(new Controller.OnMessageReceivedListener() {
+                                    @Override
+                                    public void onMessageReceive(String message) {
+                                        stackMessage("Received: " + message, DEBUG);
+                                    }
+                                });
+                                controller.beginReceiving();
+                            } else {
+                                controller = null;
+                                popMessage = reason;
                             }
                             Toast.makeText(Main.this, popMessage, Toast.LENGTH_SHORT).show();
                         }
@@ -247,8 +240,6 @@ public class Main extends Activity {
         mMessageBoxAdapter.add(coloredMessage);
         mMessageBox.setSelection(mMessageBoxAdapter.getCount() - 1);
     }
-
-    private final UsbBroadcastReceiver usbBroadcastReceiver = new UsbBroadcastReceiver(Main.this);
 
     private class ColoredMessage {
         int level;

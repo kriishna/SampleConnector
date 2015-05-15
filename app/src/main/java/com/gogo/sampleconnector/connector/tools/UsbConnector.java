@@ -1,26 +1,24 @@
 package com.gogo.sampleconnector.connector.tools;
 
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Message;
+
+import com.gogo.sampleconnector.connector.ConnectFailException;
 
 import java.io.IOException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * USB Bluetooth Connector
  */
 public class UsbConnector extends BaseConnector {
-    public static final String TAG = UsbConnector.class.getSimpleName();
 
     UsbBroadcastReceiver usbBroadcastReceiver;
     UsbController usbController;
@@ -34,6 +32,9 @@ public class UsbConnector extends BaseConnector {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        usbBroadcastReceiver = new UsbBroadcastReceiver(this);
+        getActivity().registerReceiver(usbBroadcastReceiver,
+                new IntentFilter(UsbBroadcastReceiver.ACTION_USB_PERMISSION));
         usbController = new UsbController();
         performSelect();
         return new AlertDialog.Builder(getActivity()).create();
@@ -52,47 +53,56 @@ public class UsbConnector extends BaseConnector {
      */
     protected boolean performSelect() {
         // Register broadcast receiver in caller.
-        boolean tmp = super.performSelect();
+        boolean result = super.performSelect();
 
-        // If UsbBroadcastReceiver is not set, return.
-        if (null == usbBroadcastReceiver) {
-            Log.e(TAG, "UsbBroadcastReceiver is not set!");
-            return false;
-        }
-        Context context = usbBroadcastReceiver.getApplicationContextInfo();
+        final Context context = getActivity();
         // Create PendingIntent for permission request
-        PendingIntent permissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(UsbBroadcastReceiver.ACTION_USB_PERMISSION), 0);
+        Intent intent = new Intent(UsbBroadcastReceiver.ACTION_USB_PERMISSION);
+        PendingIntent permissionIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+
         usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
         if (usbManager.getDeviceList().values().iterator().hasNext()) {
+            // Device attached, request permission.
             usbDevice = usbManager.getDeviceList().values().iterator().next();
             usbManager.requestPermission(usbDevice, permissionIntent);
-            usbController.setDeviceInfo(usbBroadcastReceiver, usbDevice, usbManager);
         } else {
-            tmp = false;
+            // No device found.
+            result = false;
+            Message message = mHandler.obtainMessage();
+            message.what = BaseConnector.CONNECT_STATUS;
+            message.arg1 = ConnectionStatus.FAIL;
+            message.obj = ConnectionStatus.NO_DEVICE;
+            message.sendToTarget();
         }
-        final boolean result = tmp;
-        Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
-            @Override
-            public void run() {
-                if (result) {
-                    mHandler.obtainMessage(BaseConnector.CONNECT_STATUS, ConnectionStatus.SUCCEED).sendToTarget();
-                } else {
-                    mHandler.obtainMessage(BaseConnector.CONNECT_STATUS, ConnectionStatus.NO_DEVICE).sendToTarget();
-                }
-            }
-        }, 500, TimeUnit.MILLISECONDS);
+
         UsbConnector.this.dismiss();
         return result;
     }
 
     /**
-     * Get application context info for creating USB permission broadcast,
-     * retrieving USB device.
+     * When permission is granted(or not), call this method
+     * to send back result.
      *
-     * @param receiver UsbBroadcastReceiver that receives USB permission broadcast.
+     * @param hasPermission
      */
-    public void setUsbBroadcastReceiver(UsbBroadcastReceiver receiver) {
-        this.usbBroadcastReceiver = receiver;
+    public void retrieveConnectionResult(final boolean hasPermission) {
+        Message message = mHandler.obtainMessage();
+        message.what = BaseConnector.CONNECT_STATUS;
+        try {
+            if (hasPermission) {
+                message.arg1 = ConnectionStatus.SUCCEED;
+                usbController.setDeviceInfo(usbDevice, usbManager);
+            } else {
+                throw new ConnectFailException(ConnectionStatus.NO_PERMISSION);
+            }
+        } catch (ConnectFailException e) {
+            message.arg1 = ConnectionStatus.FAIL;
+            message.obj = e.getMessage();
+        }
+        message.sendToTarget();
+        // TODO: check why this is null?
+        // TODO: multiple established bug!
+        getActivity().unregisterReceiver(usbBroadcastReceiver);
     }
 
     @Override
