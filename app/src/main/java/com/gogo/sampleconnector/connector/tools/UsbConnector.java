@@ -11,9 +11,6 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.gogo.sampleconnector.connector.Controller;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
@@ -37,19 +34,9 @@ public class UsbConnector extends BaseConnector {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        String title = "Connect by USB ?";
-        return new AlertDialog.Builder(getActivity())
-                .setTitle(title)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Set up relate information after permission is granted.
-                        usbController = new UsbController();
-                        performSelect();
-                    }
-                })
-                .create();
-
+        usbController = new UsbController();
+        performSelect();
+        return new AlertDialog.Builder(getActivity()).create();
     }
 
     @Override
