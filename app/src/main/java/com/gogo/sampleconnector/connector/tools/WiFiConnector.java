@@ -1,6 +1,5 @@
 package com.gogo.sampleconnector.connector.tools;
 
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
@@ -8,8 +7,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-
-import com.gogo.sampleconnector.connector.Controller;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -96,7 +93,7 @@ public class WiFiConnector extends BaseConnector {
      * @throws IOException if WiFiController is null
      */
     @Override
-    public Controller getController() throws IOException {
+    public BaseController getController() throws IOException {
         if (null == wifiController) throw new IOException("WiFiController is null!");
         return wifiController;
     }

@@ -9,8 +9,6 @@ import java.io.IOException;
  */
 public abstract class Connector extends DialogFragment {
 
-    public abstract Controller getController() throws IOException;
-
     /**
      * Interface definition for a callback to be invoked when a address is clicked.
      */

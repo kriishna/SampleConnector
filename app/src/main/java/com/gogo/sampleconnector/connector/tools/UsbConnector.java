@@ -109,7 +109,7 @@ public class UsbConnector extends BaseConnector {
     }
 
     @Override
-    public Controller getController() throws IOException {
+    public BaseController getController() throws IOException {
         if (null == usbController) throw new IOException("UsbController is null!");
         return usbController;
     }

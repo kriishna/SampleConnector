@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 /**
  * USB data communication controller.
  */
-public class UsbController extends Controller {
+public class UsbController extends BaseController {
     public static final String TAG =  UsbController.class.getSimpleName();
 
     private final int TIMEOUT = 300;
@@ -81,5 +81,9 @@ public class UsbController extends Controller {
         if (!usbBroadcastReceiver.hasGranted()) return;
         if (null == usbDeviceConnection) return;
         usbDeviceConnection.close();
+    }
+
+    public void beginReceiving() {
+        // TODO:
     }
 }

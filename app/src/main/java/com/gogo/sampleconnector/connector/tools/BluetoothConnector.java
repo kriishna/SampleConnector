@@ -96,7 +96,7 @@ public class BluetoothConnector extends BaseConnector {
      * @throws IOException if BluetoothController is null
      */
     @Override
-    public Controller getController() throws IOException {
+    public BaseController getController() throws IOException {
         if (null == bluetoothController) throw new IOException("BluetoothController is null!");
         return bluetoothController;
     }

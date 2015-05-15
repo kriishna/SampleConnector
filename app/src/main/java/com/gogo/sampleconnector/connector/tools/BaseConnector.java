@@ -125,7 +125,13 @@ public abstract class BaseConnector extends Connector {
         mOnConnectionEstablishedListener = li;
     }
 
-    public abstract Controller getController() throws IOException;
+    /**
+     * Get connection controller.
+     *
+     * @return BaseController of established connection.
+     * @throws IOException
+     */
+    public abstract BaseController getController() throws IOException;
 
     /**
      * Interface definition for a callback to be invoked when a connection is established.

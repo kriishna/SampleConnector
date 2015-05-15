@@ -19,6 +19,7 @@ import com.example.gogo244.commandcombiner.CommandCombiner;
 import com.gogo.sampleconnector.connector.Connector;
 import com.gogo.sampleconnector.connector.Controller;
 import com.gogo.sampleconnector.connector.tools.BaseConnector;
+import com.gogo.sampleconnector.connector.tools.BaseController;
 import com.gogo.sampleconnector.connector.tools.BluetoothConnector;
 import com.gogo.sampleconnector.connector.tools.UsbBroadcastReceiver;
 import com.gogo.sampleconnector.connector.tools.UsbConnector;
@@ -37,7 +38,7 @@ public class Main extends Activity {
     private ListView mMessageBox;
     private ArrayAdapter<ColoredMessage> mMessageBoxAdapter;
 
-    private Controller controller;
+    private BaseController controller;
 
     private byte[] command = null;
     private EditText etInputBox;
@@ -197,8 +198,7 @@ public class Main extends Activity {
                                         new IntentFilter(UsbBroadcastReceiver.ACTION_USB_PERMISSION));
                             }
                             try {
-
-                                controller = connector.getController();
+                                controller = ((BaseConnector) connector).getController();
                             } catch (IOException e) {
                                 Log.e(TAG, "Failed to get controller: " + e);
                             }
@@ -212,6 +212,15 @@ public class Main extends Activity {
                                 case Connector.ConnectionStatus.SUCCEED:
                                     popMessage = "Connection established";
                                     stackMessage("Connection is established: " + connector.getConnectorType(), DEBUG);
+                                    // If connection is established, set up OnMessageReceivedListener
+                                    // and start to run receiving thread.
+                                    controller.setOnMessageReceivedListener(new Controller.OnMessageReceivedListener() {
+                                        @Override
+                                        public void onMessageReceive(String message) {
+                                            stackMessage("Received: " + message, DEBUG);
+                                        }
+                                    });
+                                    controller.beginReceiving();
                                     break;
                                 case Connector.ConnectionStatus.FAIL:
                                     controller = null;
