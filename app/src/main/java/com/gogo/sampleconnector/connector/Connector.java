@@ -23,5 +23,6 @@ public abstract class Connector extends DialogFragment {
         public static final String NO_DEVICE = "No device available";
         public static final String NO_PERMISSION = "No USB device permission";
         public static final String WAITING_TIMEOUT = "No response, timeout.";
+        public static final String ADDRESS_UNKNOWN = "Address is unknown";
     }
 }

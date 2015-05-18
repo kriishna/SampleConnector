@@ -39,7 +39,7 @@ public abstract class BaseConnector extends Connector {
             public void handleMessage(Message msg) {
                 switch (msg.what) {
                     case CONNECT_STATUS:
-                        if ( msg.arg1 == ConnectionStatus.SUCCEED) {
+                        if (msg.arg1 == ConnectionStatus.SUCCEED) {
                             notifyConnectionEstablished(true, null);
                         } else {
                             notifyConnectionEstablished(false, (String) msg.obj);

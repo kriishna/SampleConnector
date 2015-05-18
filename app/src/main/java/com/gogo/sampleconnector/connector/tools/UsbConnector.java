@@ -10,6 +10,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Message;
+import android.util.Log;
 
 import com.gogo.sampleconnector.connector.ConnectFailException;
 
@@ -100,9 +101,6 @@ public class UsbConnector extends BaseConnector {
             message.obj = e.getMessage();
         }
         message.sendToTarget();
-        // TODO: check why this is null?
-        // TODO: multiple established bug!
-        getActivity().unregisterReceiver(usbBroadcastReceiver);
     }
 
     @Override

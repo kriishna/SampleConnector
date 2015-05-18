@@ -42,5 +42,7 @@ public class UsbBroadcastReceiver extends BroadcastReceiver {
                 }
             }
         }
+        context.unregisterReceiver(UsbBroadcastReceiver.this);
+        Log.d(TAG, "Unregister USB broadcast receiver.");
     }
 }

@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -118,16 +119,19 @@ public class BluetoothConnector extends BaseConnector {
         public void run() {
             BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
             BluetoothDevice device = adapter.getRemoteDevice(address);
+            Message message = mHandler.obtainMessage();
+            message.what = BaseConnector.CONNECT_STATUS;
             try {
                 BluetoothSocket socket = device.createRfcommSocketToServiceRecord(PRINTER_UUID);
                 socket.connect();
-                mHandler.obtainMessage(BaseConnector.CONNECT_STATUS,
-                        ConnectionStatus.SUCCEED).sendToTarget();
                 controller.setupConnection(socket);
+                message.arg1 = ConnectionStatus.SUCCEED;
+                message.sendToTarget();
             } catch (IOException e) {
-                mHandler.obtainMessage(BaseConnector.CONNECT_STATUS,
-                        ConnectionStatus.FAIL).sendToTarget();
-                Log.e(TAG, "Failed to create bluetooth socket: " + e);
+                message.arg1 = ConnectionStatus.FAIL;
+                message.obj = ConnectionStatus.FAIL_ESTABLISH;
+                Log.e(TAG, "Failed to build bluetooth connection: " + e);
+                message.sendToTarget();
             }
         }
     }

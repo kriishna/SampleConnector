@@ -3,10 +3,13 @@ package com.gogo.sampleconnector.connector.tools;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
+import com.gogo.sampleconnector.connector.ConnectFailException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -121,30 +124,31 @@ public class WiFiConnector extends BaseConnector {
                 wifiSocket.connect(new InetSocketAddress(this.address, this.port), 1000);
                 if (wifiSocket.isConnected()) {
                     Log.d(TAG, "Connection established successfully.");
-                    sendConnectResultMessage(true);
+                    sendConnectResultMessage(true, null);
                     controller.setupConnection(wifiSocket);
                 } else {
                     Log.e(TAG, "Socket is not connected.");
-                    sendConnectResultMessage(false);
-                    throw new IOException("Socket is not connected!");
+                    sendConnectResultMessage(false, new ConnectFailException(ConnectionStatus.FAIL_ESTABLISH));
                 }
             } catch (UnknownHostException e) {
-                sendConnectResultMessage(false);
-                Log.e(TAG, "Address is unknown: " + e);
+                sendConnectResultMessage(false, new ConnectFailException(ConnectionStatus.ADDRESS_UNKNOWN));
             } catch (NullPointerException|IOException e) {
-                sendConnectResultMessage(false);
-                Log.e(TAG, "Failed to create socket: " + e);
+                sendConnectResultMessage(false, new ConnectFailException(ConnectionStatus.FAIL_ESTABLISH));
+                Log.e(TAG, "Failed to connect by WiFi: " + e);
             }
         }
 
-        private void sendConnectResultMessage(final boolean result) {
+        private void sendConnectResultMessage(final boolean result, ConnectFailException exception) {
+            Message message = mHandler.obtainMessage();
+            message.what = BaseConnector.CONNECT_STATUS;
+
             if (result) {
-                mHandler.obtainMessage(BaseConnector.CONNECT_STATUS,
-                        ConnectionStatus.SUCCEED).sendToTarget();
+                message.arg1 = ConnectionStatus.SUCCEED;
             } else {
-                mHandler.obtainMessage(BaseConnector.CONNECT_STATUS,
-                        ConnectionStatus.FAIL).sendToTarget();
+                message.arg1 = ConnectionStatus.FAIL;
+                message.obj = exception.getMessage();
             }
+            message.sendToTarget();
         }
     }
 
