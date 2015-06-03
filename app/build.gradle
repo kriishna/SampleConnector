@@ -5,8 +5,8 @@ android {
     buildToolsVersion "21.0.0"
 
     defaultConfig {
-        applicationId "com.example.lichiachen.usbcommunication"
-        minSdkVersion 14
+        applicationId "com.gogo.sampleconnector"
+        minSdkVersion 10
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
