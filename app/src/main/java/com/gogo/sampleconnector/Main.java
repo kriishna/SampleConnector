@@ -20,7 +20,6 @@ import com.gogo.sampleconnector.connector.Controller;
 import com.gogo.sampleconnector.connector.tools.BaseConnector;
 import com.gogo.sampleconnector.connector.tools.BaseController;
 import com.gogo.sampleconnector.connector.tools.BluetoothConnector;
-import com.gogo.sampleconnector.connector.tools.UsbBroadcastReceiver;
 import com.gogo.sampleconnector.connector.tools.UsbConnector;
 import com.gogo.sampleconnector.connector.tools.WiFiConnector;
 

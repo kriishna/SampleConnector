@@ -13,11 +13,6 @@ public abstract class ReceivingDataThread extends HandlerThread {
      */
     protected Handler mainThreadHandler;
 
-    /**
-     * A Runnable for recursively receiving data.
-     */
-    protected Runnable mReceiveRunnable;
-
     public ReceivingDataThread(String name, Handler h) {
         super(name);
         mainThreadHandler = h;
@@ -29,9 +24,7 @@ public abstract class ReceivingDataThread extends HandlerThread {
         else return false;
     }
 
-    public Runnable getReceiveRunnable() {
-        return mReceiveRunnable;
-    }
+    public abstract Runnable getReceiveRunnable();
 
     protected abstract boolean close();
 }

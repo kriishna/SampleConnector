@@ -21,7 +21,6 @@ import java.io.IOException;
  */
 public class UsbConnector extends BaseConnector {
 
-    UsbBroadcastReceiver usbBroadcastReceiver;
     UsbController usbController;
     UsbManager usbManager;
     UsbDevice usbDevice;
@@ -33,7 +32,7 @@ public class UsbConnector extends BaseConnector {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        usbBroadcastReceiver = new UsbBroadcastReceiver(this);
+        UsbBroadcastReceiver usbBroadcastReceiver = new UsbBroadcastReceiver(this);
         getActivity().registerReceiver(usbBroadcastReceiver,
                 new IntentFilter(UsbBroadcastReceiver.ACTION_USB_PERMISSION));
         usbController = new UsbController();

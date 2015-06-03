@@ -24,6 +24,14 @@ public abstract class BaseController extends Controller {
             public void handleMessage(Message msg) {
                 switch (msg.what) {
                     case RECEIVED_MESSAGE:
+                        /* Modify here to print out string message or hex value
+                        byte[] buffer = (byte[]) msg.obj;
+                        String hexValue = "";
+                        for (int i=0; i<buffer.length; i++) {
+                            hexValue += String.format("%02X", buffer[i]);
+                        }
+                        sendbackMessage(hexValue);
+                        */
                         sendbackMessage((String) msg.obj);
                         break;
                 }

@@ -97,29 +97,27 @@ public class BluetoothController extends BaseController {
             return isStop;
         }
 
-        @Override
-        public void run() {
-            mReceiveRunnable = new Runnable() {
+        public Runnable getReceiveRunnable() {
+            return new Runnable() {
                 @Override
                 public void run() {
-                    for ( ;connectionSocket.isConnected(); ) {
-                        if (!isStop) {
-                            try {
+                    try {
+                        InputStream in = connectionSocket.getInputStream();
+                        for (; connectionSocket.isConnected(); ) {
+                            if (!isStop) {
                                 byte[] buffer = new byte[128];
-                                InputStream in = connectionSocket.getInputStream();
                                 in.read(buffer, 0, buffer.length);
                                 mainThreadHandler
-                                        .obtainMessage(BaseController.RECEIVED_MESSAGE, new String(buffer))
+                                        .obtainMessage(BaseController.RECEIVED_MESSAGE, buffer)
                                         .sendToTarget();
-                                in.close();
-                            } catch (IOException e) {}
-                        } else {
-                            return;
+                            } else {
+                                break;
+                            }
                         }
-                    }
+                        in.close();
+                    } catch (IOException e) {}
                 }
             };
-            super.run();
         }
     }
     BluetoothReceivingDataThread mReceivingDataThread = new BluetoothReceivingDataThread(mainThreadHandler);
