@@ -13,8 +13,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.gogo244.commandcombiner.CommandCombiner;
-
 import com.gogo.sampleconnector.connector.Connector;
 import com.gogo.sampleconnector.connector.Controller;
 import com.gogo.sampleconnector.connector.tools.BaseConnector;
@@ -65,13 +63,6 @@ public class Main extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        /*
-        try {
-            unregisterReceiver(usbBroadcastReceiver);
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "" + e);
-        }
-        */
     }
 
     @Override
@@ -85,12 +76,14 @@ public class Main extends Activity {
         switch (requestCode) {
             case COMMAND_REQUEST:
                 if (resultCode == Activity.RESULT_OK) {
+                    /*
                     String cmd = data.getStringExtra(CommandCombiner.EXTRA_COMMAND_STRING);
                     String tmp = etInputBox.getText().toString().isEmpty() ?
                             cmd : etInputBox.getText().toString() + " " + cmd;
                     etInputBox.setText(tmp);
                     byte[] raw = data.getByteArrayExtra(CommandCombiner.EXTRA_COMMAND_BYTES);
                     command = command == null ? raw : CommandCombiner.combineByteArrays(command, raw);
+                    */
                 }
                 break;
         }
@@ -159,19 +152,6 @@ public class Main extends Activity {
      */
     private void setupInputBox() {
         etInputBox = (EditText) findViewById(R.id.et_input_box);
-        ((Button) findViewById(R.id.btn_add)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Do nothing if no valid connection.
-                if (null == controller) {
-                    Toast.makeText(Main.this, "No connection available", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                // Call command combiner.
-                Intent intent = new Intent(Main.this, CommandCombiner.class);
-                startActivityForResult(intent, COMMAND_REQUEST);
-            }
-        });
         ((Button) findViewById(R.id.btn_send)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

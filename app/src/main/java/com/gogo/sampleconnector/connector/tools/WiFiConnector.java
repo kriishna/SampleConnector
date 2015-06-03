@@ -2,18 +2,27 @@ package com.gogo.sampleconnector.connector.tools;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
+import android.net.DhcpInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.gogo.sampleconnector.R;
 import com.gogo.sampleconnector.connector.ConnectFailException;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
@@ -25,9 +34,27 @@ import java.util.concurrent.Executors;
 public class WiFiConnector extends BaseConnector {
     final static String TAG = WiFiConnector.class.getSimpleName();
 
-    final int PRINTER_PORT = 9100;
+    final int ADDRESS_UPDATE_MESSAGE = 0x01;
+
+    final int PORT = 9100;
 
     WiFiController wifiController;
+
+    ArrayList<String> addrs = new ArrayList<>();
+    ListView addrListView;
+    ArrayAdapter<String> addrAdapter;
+
+    // Handler that handle the updating of address list.
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message message) {
+            switch (message.what) {
+                case ADDRESS_UPDATE_MESSAGE:
+                    addrAdapter.add((String) message.obj);
+                    break;
+            }
+        }
+    };
 
     public static WiFiConnector newInstance() {
         WiFiConnector frag = new WiFiConnector();
@@ -36,17 +63,15 @@ public class WiFiConnector extends BaseConnector {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        // Create address list
-        ArrayList<String> tmp = new ArrayList<>();
-        tmp.add("192.168.1.23");
-        tmp.add("192.168.1.24");
-
-        final ArrayList<String> addrs = tmp;
-
         String title = "Connect by wifi ...";
+        ListView lv = prepareListView(addrs);
+
+        WiFiBroadcastRunnable r = new WiFiBroadcastRunnable(handler);
+        Executors.newSingleThreadExecutor().submit(r);
+
         return new AlertDialog.Builder(getActivity())
                 .setTitle(title)
-                .setView(prepareListView(addrs))
+                .setView(lv)
                 .create();
     }
 
@@ -57,17 +82,19 @@ public class WiFiConnector extends BaseConnector {
 
     @Override
     protected ListView prepareListView(final ArrayList<String> list) {
-        ListView listview = super.prepareListView(list);
+        addrListView = super.prepareListView(list);
+        addrAdapter = new ArrayAdapter<String>(getActivity(), R.layout.address, addrs);
+        addrListView.setAdapter(addrAdapter);
 
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        addrListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.d(TAG, "Index " + position + " is clicked: " + list.get(position));
-                connect(list.get(position), PRINTER_PORT);
+                connect(list.get(position), PORT);
                 performSelect();
             }
         });
-        return listview;
+        return addrListView;
     }
 
     /**
@@ -149,6 +176,57 @@ public class WiFiConnector extends BaseConnector {
                 message.obj = exception.getMessage();
             }
             message.sendToTarget();
+        }
+    }
+
+    /**
+     * Runnable that perform a wifi broadcast and update address list.
+     */
+    private class WiFiBroadcastRunnable implements Runnable {
+        Handler uiHandler;
+
+        public WiFiBroadcastRunnable(Handler h) {
+            uiHandler = h;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Log.e(TAG, "run()");
+                    //performBroadcast(getBroadcastAddress());
+                    if (getBroadcastAddress() == null) {
+                        Log.e(TAG, "dhcp is null !!!");
+                    } else {
+                        Log.e(TAG, "dhcp is not null!!");
+                    }
+                    //uiHandler.obtainMessage(ADDRESS_UPDATE_MESSAGE, addr).sendToTarget();
+                    break;
+                } catch (IOException e) {
+                    Log.e(TAG, "Got :" + e);
+                    break;
+                }
+            }
+        }
+
+        private InetAddress getBroadcastAddress() throws IOException {
+            WifiManager wifi = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
+            DhcpInfo dhcp = wifi.getDhcpInfo();
+            Log.e(TAG, "dhcp info got.");
+            if (null == dhcp) throw new IOException("DHCP not found!");
+
+            int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
+            byte[] quads = new byte[4];
+            for (int k=0; k<4; k++) {
+                quads[k] = (byte) ((broadcast >> k*8) & 0xff);
+            }
+
+            return InetAddress.getByAddress(quads);
+        }
+
+        private void performBroadcast(InetAddress addr) throws SocketException {
+            DatagramSocket udpSocket = new DatagramSocket(PORT);
+
         }
     }
 
