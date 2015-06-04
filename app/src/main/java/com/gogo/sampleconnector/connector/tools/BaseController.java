@@ -32,7 +32,7 @@ public abstract class BaseController extends Controller {
                         }
                         sendbackMessage(hexValue);
                         */
-                        sendbackMessage((String) msg.obj);
+                        sendbackMessage(new String((byte[]) msg.obj));
                         break;
                 }
             }
