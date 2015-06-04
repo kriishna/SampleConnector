@@ -9,9 +9,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.gogo.sampleconnector.R;
@@ -65,13 +67,17 @@ public class WiFiConnector extends BaseConnector {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         String title = "Connect by wifi ...";
         ListView lv = prepareListView(addrs);
+        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.wifi_picker, null);
+        LinearLayout container = (LinearLayout) ll.findViewById(R.id.ll_address_list_container);
+        container.addView(lv);
 
         WiFiBroadcastRunnable r = new WiFiBroadcastRunnable(handler);
         Executors.newSingleThreadExecutor().submit(r);
 
         return new AlertDialog.Builder(getActivity())
                 .setTitle(title)
-                .setView(lv)
+                .setView(ll)
                 .create();
     }
 
@@ -191,37 +197,17 @@ public class WiFiConnector extends BaseConnector {
 
         @Override
         public void run() {
+            int i = 0;
             while (true) {
-                try {
-                    Log.e(TAG, "run()");
-                    //performBroadcast(getBroadcastAddress());
-                    if (getBroadcastAddress() == null) {
-                        Log.e(TAG, "dhcp is null !!!");
-                    } else {
-                        Log.e(TAG, "dhcp is not null!!");
-                    }
-                    //uiHandler.obtainMessage(ADDRESS_UPDATE_MESSAGE, addr).sendToTarget();
-                    break;
-                } catch (IOException e) {
-                    Log.e(TAG, "Got :" + e);
-                    break;
-                }
+                i++ ;
+                uiHandler.obtainMessage(ADDRESS_UPDATE_MESSAGE, "192.168.1.1").sendToTarget();
+                try {Thread.sleep(1000);} catch (InterruptedException e) {}
+                if (i > 10) break;
             }
         }
 
         private InetAddress getBroadcastAddress() throws IOException {
-            WifiManager wifi = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
-            DhcpInfo dhcp = wifi.getDhcpInfo();
-            Log.e(TAG, "dhcp info got.");
-            if (null == dhcp) throw new IOException("DHCP not found!");
-
-            int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
-            byte[] quads = new byte[4];
-            for (int k=0; k<4; k++) {
-                quads[k] = (byte) ((broadcast >> k*8) & 0xff);
-            }
-
-            return InetAddress.getByAddress(quads);
+            return null;
         }
 
         private void performBroadcast(InetAddress addr) throws SocketException {
