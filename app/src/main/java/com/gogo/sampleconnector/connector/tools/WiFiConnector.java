@@ -3,10 +3,6 @@ package com.gogo.sampleconnector.connector.tools;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.DhcpInfo;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,20 +16,19 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.gogo.sampleconnector.R;
 import com.gogo.sampleconnector.connector.ConnectFailException;
+import com.gogo.sampleconnector.connector.scantools.FlashingItem;
+import com.gogo.sampleconnector.connector.scantools.FlashingTextView;
+import com.gogo.sampleconnector.connector.scantools.ScanningRunnable;
+import com.gogo.sampleconnector.connector.scantools.WiFiBroadcastRunnable;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,27 +39,31 @@ import java.util.concurrent.Executors;
 public class WiFiConnector extends BaseConnector {
     final static String TAG = WiFiConnector.class.getSimpleName();
 
-    final int ADDRESS_UPDATE_MESSAGE = 0x01;
-
-    final int PORT = 9100;
-
-    private boolean stopBroadcast = false;
-
     private WiFiController wifiController;
 
     private ArrayList<String> addrs = new ArrayList<>();
     private ListView addrListView;
     private ArrayAdapter<String> addrAdapter;
 
+    private ScanningRunnable scanningRunnable;
     private Button picker;
+
+    private LinearLayout dialogLayout;
+    private TextView tvScanning;
 
     // Handler that handle the updating of address list.
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message message) {
             switch (message.what) {
-                case ADDRESS_UPDATE_MESSAGE:
+                case ScanningRunnable.ADDRESS_UPDATE_MESSAGE:
                     addrAdapter.add((String) message.obj);
+                    break;
+                case FlashingItem.FLASHING_MESSAGE:
+                    tvScanning.setText((String) message.obj);
+                    break;
+                case FlashingItem.STOP_FLASHING_MESSAGE:
+                    tvScanning.setVisibility(View.INVISIBLE);
                     break;
             }
         }
@@ -80,21 +79,28 @@ public class WiFiConnector extends BaseConnector {
         String title = "Connect by wifi ...";
         ListView lv = prepareListView(addrs);
         LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.wifi_picker, null);
+        dialogLayout = (LinearLayout) inflater.inflate(R.layout.wifi_picker, null);
+        tvScanning = (TextView) dialogLayout.findViewById(R.id.tv_scanning);
+        picker = (Button) dialogLayout.findViewById(R.id.btn_address_set);
 
-        picker = (Button) layout.findViewById(R.id.btn_address_set);
-
-        LinearLayout containerLayout = (LinearLayout) layout.findViewById(R.id.ll_address_list_container);
+        LinearLayout containerLayout = (LinearLayout) dialogLayout.findViewById(R.id.ll_address_list_container);
         containerLayout.addView(lv);
 
-        setupAddressEditor((ViewGroup) layout.findViewById(R.id.ll_editor_container));
+        setupAddressEditor((ViewGroup) dialogLayout.findViewById(R.id.ll_editor_container));
 
-        WiFiBroadcastRunnable r = new WiFiBroadcastRunnable(handler);
-        Executors.newSingleThreadExecutor().submit(r);
+        String[] messages = {
+                getActivity().getResources().getString(R.string.str_scanning_0),
+                getActivity().getResources().getString(R.string.str_scanning_1),
+                getActivity().getResources().getString(R.string.str_scanning_2),
+                getActivity().getResources().getString(R.string.str_scanning_3),
+        };
+        FlashingTextView flashitem = new FlashingTextView(messages, 300, handler);
+        scanningRunnable = new WiFiBroadcastRunnable(handler, getActivity(), flashitem);
+        Executors.newSingleThreadExecutor().submit(scanningRunnable);
 
         return new AlertDialog.Builder(getActivity())
                 .setTitle(title)
-                .setView(layout)
+                .setView(dialogLayout)
                 .create();
     }
 
@@ -172,7 +178,7 @@ public class WiFiConnector extends BaseConnector {
     @Override
     protected boolean performSelect() {
         final boolean result = super.performSelect();
-        stopBroadcast = true;
+        if (null != scanningRunnable) scanningRunnable.stopScanning();
         WiFiConnector.this.dismiss();
         return result;
     }
@@ -237,87 +243,6 @@ public class WiFiConnector extends BaseConnector {
                 message.obj = exception.getMessage();
             }
             message.sendToTarget();
-        }
-    }
-
-    /**
-     * Runnable that perform a wifi broadcast and update address list.
-     */
-    private class WiFiBroadcastRunnable implements Runnable {
-        Handler uiHandler;
-
-        public WiFiBroadcastRunnable(Handler h) {
-            uiHandler = h;
-        }
-
-        @Override
-        public void run() {
-            try {
-                // Check wifi is connected.
-                ConnectivityManager cManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-                if (!cManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected()) {
-                    // TODO: warning wifi is off
-                    Log.e(TAG, "WiFi is off.");
-                    return;
-                }
-
-                WifiManager wManager = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
-                WifiInfo info = wManager.getConnectionInfo();
-                DhcpInfo dhcpInfo = wManager.getDhcpInfo();
-                int self_ip = info.getIpAddress();
-                int netmask = dhcpInfo.netmask;
-                /*
-                Log.e(TAG, String.format("ipp = %d.%d.%d.%d",
-                                          self_ip >> 24 & 0xff, self_ip >> 16 & 0xff,
-                                          self_ip >> 8 & 0xff, self_ip & 0xff));
-                Log.e(TAG, String.format("netmask = %d.%d.%d.%d",
-                                          netmask >> 24 & 0xff, netmask >> 16 & 0xff,
-                                          netmask >> 8 & 0xff, netmask & 0xff));
-                                          */
-                int broadcast_addr = (self_ip & netmask) | ~netmask;
-                byte[] ip = {(byte)(broadcast_addr & 0xff), (byte)(broadcast_addr >> 8 & 0xff),
-                                (byte)(broadcast_addr >> 16 & 0xff), (byte)(broadcast_addr >> 24 & 0xff)};
-
-                // Send broadcast
-                /*
-                DatagramSocket socket = new DatagramSocket(null);
-                socket.bind(new InetSocketAddress(PORT));
-                //Log.e(TAG, "socket.getBroadcast() = " + socket.getBroadcast());
-                InetAddress group = InetAddress.getByAddress(ip);
-                String data = "Hello";
-                DatagramPacket packet = new DatagramPacket(data.getBytes(), data.getBytes().length, group, PORT);
-                while (!stopBroadcast) {
-                    socket.send(packet);
-                    Thread.sleep(1000);
-                }
-                */
-
-                // TODO: Apply "in searching" notice
-                int bit = 0;
-                int tmp = netmask;
-                while (tmp > 0) {
-                    bit++;
-                    tmp = tmp >> 1;
-                }
-                int zero_bit = 32 - bit;
-                int range = 0x01 << zero_bit;
-                for (int i=1; i<range; i++) {
-                    int to_check = (self_ip & netmask) | (i << bit);
-                    byte[] to_check_bytes = ByteBuffer.allocate(4).putInt(to_check).array();
-
-                    if (InetAddress.getByAddress(to_check_bytes).isReachable(500)) {
-                        // TODO: Address display error
-                        String checked_ip = String.format("%d.%d.%d.%d", (int)to_check_bytes[3], (int)to_check_bytes[2],
-                                (int)to_check_bytes[1], (int)to_check_bytes[0]);
-                        uiHandler.obtainMessage(ADDRESS_UPDATE_MESSAGE, checked_ip + ":" + PORT).sendToTarget();
-                    }
-                }
-
-            } catch (IOException e) {
-                // TODO: apply error handling.
-                Log.e(TAG, "Failed to send broadcast: " + e);
-            }
-
         }
     }
 

@@ -12,5 +12,9 @@
     <string name="str_connect">CONNECT</string>
     <string name="str_dot">.</string>
     <string name="str_colon">:</string>
+    <string name="str_scanning_0">Scanning </string>
+    <string name="str_scanning_1">Scanning .</string>
+    <string name="str_scanning_2">Scanning ..</string>
+    <string name="str_scanning_3">Scanning ...</string>
 
 </resources>

@@ -74,6 +74,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <TextView
+        android:id="@+id/tv_scanning"
+        android:text="@string/str_scanning_0"
+        android:textSize="@dimen/scanning_text_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <LinearLayout
         android:id="@+id/ll_address_list_container"
         android:layout_width="match_parent"
