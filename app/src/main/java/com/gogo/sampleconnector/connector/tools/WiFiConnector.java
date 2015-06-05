@@ -53,6 +53,9 @@ public class WiFiConnector extends BaseConnector {
 
     private EditText[] et_ip;
 
+    /* Single thread pool to execute scanning and connecting runnable */
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+
     // Handler that handle the updating of address list.
     Handler handler = new Handler() {
         @Override
@@ -101,7 +104,7 @@ public class WiFiConnector extends BaseConnector {
         };
         FlashingTextView flashitem = new FlashingTextView(messages, 300, handler);
         scanningRunnable = new WiFiBroadcastRunnable(handler, getActivity(), flashitem);
-        Executors.newSingleThreadExecutor().submit(scanningRunnable);
+        executor.submit(scanningRunnable);
 
         return new AlertDialog.Builder(getActivity())
                 .setTitle(title)
@@ -178,7 +181,6 @@ public class WiFiConnector extends BaseConnector {
     private void connect(String addr, int port) {
         wifiController = new WiFiController();
         // TODO: Check "address unknown" showing too late bug
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(new ConnectRunnable(wifiController, addr, port));
     }
 
@@ -186,6 +188,7 @@ public class WiFiConnector extends BaseConnector {
     protected boolean performSelect() {
         final boolean result = super.performSelect();
         if (null != scanningRunnable) scanningRunnable.stopScanning();
+        executor.shutdown();
         WiFiConnector.this.dismiss();
         return result;
     }
