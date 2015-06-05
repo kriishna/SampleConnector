@@ -12,7 +12,6 @@
         <EditText
             android:id="@+id/et_ip_1th"
             android:textSize="@dimen/ip_box_text_size"
-            android:text="192"
             android:inputType="numberDecimal"
             android:layout_width="@dimen/ip_box_width"
             android:layout_height="@dimen/ip_box_height" />
@@ -25,7 +24,6 @@
         <EditText
             android:id="@+id/et_ip_2nd"
             android:textSize="@dimen/ip_box_text_size"
-            android:text="168"
             android:inputType="numberDecimal"
             android:layout_width="@dimen/ip_box_width"
             android:layout_height="@dimen/ip_box_height" />
@@ -71,6 +69,13 @@
     <Button
         android:id="@+id/btn_address_set"
         android:text="@string/str_connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tv_scanning"
+        android:text="@string/str_scanning_0"
+        android:textSize="@dimen/scanning_text_size"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
