@@ -6,6 +6,7 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import java.io.IOException;
@@ -17,6 +18,8 @@ import java.nio.ByteBuffer;
  */
 public class WiFiBroadcastRunnable extends ScanningRunnable {
     public static final String TAG = WiFiBroadcastRunnable.class.getSimpleName();
+
+    public static final int UPDATE_ADDRESS_MESSAGE = 0xaa;
 
     Context context;
 
@@ -59,30 +62,19 @@ public class WiFiBroadcastRunnable extends ScanningRunnable {
             byte[] ip = {(byte)(broadcast_addr & 0xff), (byte)(broadcast_addr >> 8 & 0xff),
                     (byte)(broadcast_addr >> 16 & 0xff), (byte)(broadcast_addr >> 24 & 0xff)};
 
-            // Start to flash scanning notice
-
-
-
-            // Send broadcast
-                /*
-                DatagramSocket socket = new DatagramSocket(null);
-                socket.bind(new InetSocketAddress(PORT));
-                //Log.e(TAG, "socket.getBroadcast() = " + socket.getBroadcast());
-                InetAddress group = InetAddress.getByAddress(ip);
-                String data = "Hello";
-                DatagramPacket packet = new DatagramPacket(data.getBytes(), data.getBytes().length, group, PORT);
-                while (!stopBroadcast) {
-                    socket.send(packet);
-                    Thread.sleep(1000);
-                }
-                */
-
             int bit = 0;
             int tmp = netmask;
             while (tmp > 0) {
                 bit++;
                 tmp = tmp >> 1;
             }
+
+            // Update subnet ip address
+            if (bit > 7) fillAddress((int)broadcast_addr & 0xff, 0);
+            if (bit > 15) fillAddress((int)(broadcast_addr >> 8) & 0xff, 1);
+            if (bit > 23) fillAddress((int)(broadcast_addr >> 16) & 0xff, 2);
+
+            // Start scanning
             int zero_bit = 32 - bit;
             int range = 0x01 << zero_bit;
             for (int i=1; i<range; i++) {
@@ -97,11 +89,34 @@ public class WiFiBroadcastRunnable extends ScanningRunnable {
                 }
             }
             stopScanning();
+
+            // Send broadcast
+            /*
+            DatagramSocket socket = new DatagramSocket(null);
+            socket.bind(new InetSocketAddress(PORT));
+            //Log.e(TAG, "socket.getBroadcast() = " + socket.getBroadcast());
+            InetAddress group = InetAddress.getByAddress(ip);
+            String data = "Hello";
+            DatagramPacket packet = new DatagramPacket(data.getBytes(), data.getBytes().length, group, PORT);
+            while (!stopBroadcast) {
+                socket.send(packet);
+                Thread.sleep(1000);
+            }
+            */
+
         } catch (IOException e) {
             // TODO: apply error handling.
             Log.e(TAG, "Failed to send broadcast: " + e);
         }
 
+    }
+
+    private void fillAddress(int part, int order) {
+        Message msg = mainThreadHandler.obtainMessage();
+        msg.what = UPDATE_ADDRESS_MESSAGE;
+        msg.arg1 = order;
+        msg.obj = "" + part;
+        msg.sendToTarget();
     }
 
 }

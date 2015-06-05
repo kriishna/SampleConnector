@@ -51,6 +51,8 @@ public class WiFiConnector extends BaseConnector {
     private LinearLayout dialogLayout;
     private TextView tvScanning;
 
+    private EditText[] et_ip;
+
     // Handler that handle the updating of address list.
     Handler handler = new Handler() {
         @Override
@@ -64,6 +66,9 @@ public class WiFiConnector extends BaseConnector {
                     break;
                 case FlashingItem.STOP_FLASHING_MESSAGE:
                     tvScanning.setVisibility(View.INVISIBLE);
+                    break;
+                case WiFiBroadcastRunnable.UPDATE_ADDRESS_MESSAGE:
+                    et_ip[message.arg1].setText((String) message.obj);
                     break;
             }
         }
@@ -133,18 +138,19 @@ public class WiFiConnector extends BaseConnector {
      * @param parent
      */
     private void setupAddressEditor(final ViewGroup parent) {
+        et_ip = new EditText[4];
+        et_ip[0] = (EditText) parent.findViewById(R.id.et_ip_1th);
+        et_ip[1] = (EditText) parent.findViewById(R.id.et_ip_2nd);
+        et_ip[2] = (EditText) parent.findViewById(R.id.et_ip_3rd);
+        et_ip[3] = (EditText) parent.findViewById(R.id.et_ip_4th);
         picker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
-                    EditText et_ip_1st = (EditText) parent.findViewById(R.id.et_ip_1th);
-                    String ip_1st = et_ip_1st.getText().toString();
-                    EditText et_ip_2nd = (EditText) parent.findViewById(R.id.et_ip_2nd);
-                    String ip_2nd = et_ip_2nd.getText().toString();
-                    EditText et_ip_3rd = (EditText) parent.findViewById(R.id.et_ip_3rd);
-                    String ip_3rd = et_ip_3rd.getText().toString();
-                    EditText et_ip_4th = (EditText) parent.findViewById(R.id.et_ip_4th);
-                    String ip_4th = et_ip_4th.getText().toString();
+                    String ip_1st = et_ip[0].getText().toString();
+                    String ip_2nd = et_ip[1].getText().toString();
+                    String ip_3rd = et_ip[2].getText().toString();
+                    String ip_4th = et_ip[3].getText().toString();
                     EditText et_ip_port = (EditText) parent.findViewById(R.id.et_ip_port);
                     String ip_port = et_ip_port.getText().toString();
 
@@ -171,6 +177,7 @@ public class WiFiConnector extends BaseConnector {
      */
     private void connect(String addr, int port) {
         wifiController = new WiFiController();
+        // TODO: Check "address unknown" showing too late bug
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(new ConnectRunnable(wifiController, addr, port));
     }
