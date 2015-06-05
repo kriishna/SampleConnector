@@ -4,7 +4,7 @@ A tool to send/receive byte array data to device through WiFi, Bluetooth and USB
 
 *TODO*
 - Add USB message receiver.
-- Let address editable.
+- Let WiFi port editable.
 - If WiFi is off, ask for turn it on.
 - If Bluetooth is off, ask for turn it on.
-- Let WiFi port editable.
+- Bluetooth device scanning.
