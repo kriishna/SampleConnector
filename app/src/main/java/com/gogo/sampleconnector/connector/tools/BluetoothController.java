@@ -49,18 +49,20 @@ public class BluetoothController extends BaseController {
     public boolean send(final byte[] data) {
         if (null == data) return true;
         if (null != mSocket && mSocket.isConnected()) {
-            Executors.newSingleThreadExecutor().submit(new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         OutputStream out = mSocket.getOutputStream();
                         out.write(data);
-                        out.close();
+                        // Do not close the stream. This caused the data
+                        // sent incomplete.
+                        //out.close();
                     } catch (IOException e) {
                         Log.e(TAG, "Failed to write: " + e);
                     }
                 }
-            });
+            }, "Send by bluetooth").start();
             return true;
         } else {
             return false;
