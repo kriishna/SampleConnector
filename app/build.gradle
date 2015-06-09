@@ -8,8 +8,8 @@ android {
         applicationId "com.gogo.sampleconnector"
         minSdkVersion 10
         targetSdkVersion 21
-        versionCode 1
-        versionName "1.0"
+        versionCode 102
+        versionName "1.02"
     }
     buildTypes {
         release {
