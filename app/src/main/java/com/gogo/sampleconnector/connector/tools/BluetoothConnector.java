@@ -1,18 +1,24 @@
 package com.gogo.sampleconnector.connector.tools;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ListView;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 
-import com.gogo.sampleconnector.connector.Controller;
+import com.gogo.sampleconnector.R;
+import com.gogo.sampleconnector.connector.scantools.BluetoothScanningRunnable;
+import com.gogo.sampleconnector.connector.scantools.FlashingTextView;
+import com.gogo.sampleconnector.connector.scantools.ScanningRunnable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,12 +29,24 @@ import java.util.concurrent.Executors;
 /**
  * Sii Bluetooth Connector
  */
-public class BluetoothConnector extends BaseConnector {
+public class BluetoothConnector extends ScannableConnector {
     final static String TAG = BluetoothConnector.class.getSimpleName();
 
     BluetoothController bluetoothController;
 
     public static UUID PRINTER_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+
+    // Handler that handle the updating of address list.
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message message) {
+            switch (message.what) {
+                case ScanningRunnable.FOUND_ADDRESS_UPDATE_MESSAGE:
+                    addressAdapter.add((String) message.obj);
+                    break;
+            }
+        }
+    };
 
     public static BluetoothConnector newInstance() {
         BluetoothConnector frag = new BluetoothConnector();
@@ -37,18 +55,8 @@ public class BluetoothConnector extends BaseConnector {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        // Create address list
-        ArrayList<String> tmp = new ArrayList<>();
-        tmp.add("00:0B:5D:B4:CB:EE");
-        tmp.add("00:0B:5D:B4:CB:EF");
-
-        final ArrayList<String> addrs = tmp;
-
-        String title = "Connect by bluetooth ...";
-        return new AlertDialog.Builder(getActivity())
-                .setTitle(title)
-                .setView(prepareListView(addrs))
-                .create();
+        dialogTitle = "Connect by bluetooth ...";
+        return super.onCreateDialog(savedInstanceState);
     }
 
     @Override
@@ -56,19 +64,60 @@ public class BluetoothConnector extends BaseConnector {
         return "Bluetooth";
     }
 
-    @Override
-    protected ListView prepareListView(final ArrayList<String> list) {
-        ListView listview = super.prepareListView(list);
-
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    protected AdapterView.OnItemClickListener setupAddressClickedListener(final ArrayList<String> list) {
+        return new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.d(TAG, "Index " + position + " is clicked: " + list.get(position));
                 connect(list.get(position));
                 performSelect();
             }
+        };
+    }
+
+    protected ScanningRunnable setupScanningRunnable() {
+        FlashingTextView flashitem = new FlashingTextView(getActivity(), 300, flashingHandler);
+        return new BluetoothScanningRunnable(handler, getActivity(), flashitem);
+    }
+
+    protected LinearLayout setupAddressEditor() {
+        LayoutInflater inflater =
+                (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final LinearLayout parent =
+                (LinearLayout) inflater.inflate(R.layout.bluetooth_address_editor, null);
+
+        EditText[] et = new EditText[6];
+        et[0] = (EditText) parent.findViewById(R.id.et_btaddr_1th);
+        et[1] = (EditText) parent.findViewById(R.id.et_btaddr_2nd);
+        et[2] = (EditText) parent.findViewById(R.id.et_btaddr_3rd);
+        et[3] = (EditText) parent.findViewById(R.id.et_btaddr_4th);
+        et[4] = (EditText) parent.findViewById(R.id.et_btaddr_5th);
+        et[5] = (EditText) parent.findViewById(R.id.et_btaddr_6th);
+        final EditText[] et_btaddr = et;
+        btPicker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    String addr_1st = et_btaddr[0].getText().toString();
+                    String addr_2nd = et_btaddr[1].getText().toString();
+                    String addr_3rd = et_btaddr[2].getText().toString();
+                    String addr_4th = et_btaddr[3].getText().toString();
+                    String addr_5th = et_btaddr[4].getText().toString();
+                    String addr_6th = et_btaddr[5].getText().toString();
+
+                    String address = String.format("%s:%s:%s:%s:%s:%s",
+                            addr_1st, addr_2nd, addr_3rd, addr_4th, addr_5th, addr_6th);
+
+                    connect(address);
+                    performSelect();
+
+                } catch (NumberFormatException e) {
+                    connect("00:00:00:00:00:00");
+                }
+
+            }
         });
-        return listview;
+        return parent;
     }
 
     /**

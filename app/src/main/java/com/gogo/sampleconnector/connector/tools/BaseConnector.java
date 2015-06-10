@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import com.gogo.sampleconnector.R;
 import com.gogo.sampleconnector.connector.Connector;
 
 import java.io.IOException;
@@ -69,8 +70,6 @@ public abstract class BaseConnector extends Connector {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
-        ListAdapter adapter = new AddressAdapter(list, BaseConnector.this.getActivity());
-        listview.setAdapter(adapter);
 
         return listview;
     }

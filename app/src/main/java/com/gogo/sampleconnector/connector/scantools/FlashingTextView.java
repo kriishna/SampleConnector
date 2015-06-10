@@ -1,8 +1,11 @@
 package com.gogo.sampleconnector.connector.scantools;
 
+import android.content.Context;
 import android.os.Handler;
 
 import android.util.Log;
+
+import com.gogo.sampleconnector.R;
 
 /**
  * Flash "scanning" notice when scanning.
@@ -13,18 +16,24 @@ public class FlashingTextView extends FlashingItem {
     private String[] messages;
     private int      interval;
 
-    Handler mainThreadHandler;
+    Handler flashingHandler;
 
-    public FlashingTextView(String[] m, int i, Handler h) {
-        messages = m;
+    public FlashingTextView(Context c, int i, Handler h) {
         interval = i;
-        mainThreadHandler = h;
+        flashingHandler = h;
+
+        messages = new String[]{
+                c.getResources().getString(R.string.str_scanning_0),
+                c.getResources().getString(R.string.str_scanning_1),
+                c.getResources().getString(R.string.str_scanning_2),
+                c.getResources().getString(R.string.str_scanning_3),
+        };
     }
 
     protected void startFlash() throws InterruptedException {
         int count = 0;
         while (isFlashing) {
-            mainThreadHandler.obtainMessage(
+            flashingHandler.obtainMessage(
                     FlashingItem.FLASHING_MESSAGE,
                     messages[count % messages.length]).sendToTarget();
             count++;
@@ -34,7 +43,7 @@ public class FlashingTextView extends FlashingItem {
 
     public void stopFlash() {
         isFlashing = false;
-        mainThreadHandler.obtainMessage(FlashingItem.STOP_FLASHING_MESSAGE)
+        flashingHandler.obtainMessage(FlashingItem.STOP_FLASHING_MESSAGE)
                 .sendToTarget();
     }
 }

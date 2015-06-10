@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
 public class WiFiBroadcastRunnable extends ScanningRunnable {
     public static final String TAG = WiFiBroadcastRunnable.class.getSimpleName();
 
-    public static final int UPDATE_ADDRESS_MESSAGE = 0xaa;
+    public static final int UPDATE_SUBNET_ADDRESS_MESSAGE = 0xaa;
 
     Context context;
 
@@ -85,7 +85,7 @@ public class WiFiBroadcastRunnable extends ScanningRunnable {
                     String checked_ip = String.format("%d.%d.%d.%d",
                             (int)to_check_bytes[3] & 0xff, (int)to_check_bytes[2] & 0xff,
                             (int)to_check_bytes[1] & 0xff, (int)to_check_bytes[0] & 0xff);
-                    mainThreadHandler.obtainMessage(ADDRESS_UPDATE_MESSAGE, checked_ip + ":" + PORT).sendToTarget();
+                    mainThreadHandler.obtainMessage(FOUND_ADDRESS_UPDATE_MESSAGE, checked_ip + ":" + PORT).sendToTarget();
                 }
             }
             stopScanning();
@@ -113,7 +113,7 @@ public class WiFiBroadcastRunnable extends ScanningRunnable {
 
     private void fillAddress(int part, int order) {
         Message msg = mainThreadHandler.obtainMessage();
-        msg.what = UPDATE_ADDRESS_MESSAGE;
+        msg.what = UPDATE_SUBNET_ADDRESS_MESSAGE;
         msg.arg1 = order;
         msg.obj = "" + part;
         msg.sendToTarget();

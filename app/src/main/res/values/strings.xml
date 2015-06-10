@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">SampleConnector</string>
+    <string name="app_name">SimpleConnector</string>
 
     <string name="str_wifi">WiFi</string>
     <string name="str_bluetooth">BT</string>

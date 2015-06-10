@@ -4,52 +4,15 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:id="@+id/ll_editor_container"
+        android:id="@+id/ll_bluetooth_editor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        
-        <EditText
-            android:id="@+id/et_ip_1th"
-            android:textSize="@dimen/ip_box_text_size"
-            android:inputType="numberDecimal"
-            android:layout_width="@dimen/ip_box_width"
-            android:layout_height="@dimen/ip_box_height" />
-
-        <TextView
-            android:text="@string/str_dot"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
 
         <EditText
-            android:id="@+id/et_ip_2nd"
+            android:id="@+id/et_btaddr_1th"
             android:textSize="@dimen/ip_box_text_size"
-            android:inputType="numberDecimal"
-            android:layout_width="@dimen/ip_box_width"
-            android:layout_height="@dimen/ip_box_height" />
-
-        <TextView
-            android:text="@string/str_dot"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <EditText
-            android:id="@+id/et_ip_3rd"
-            android:textSize="@dimen/ip_box_text_size"
-            android:inputType="numberDecimal"
-            android:layout_width="@dimen/ip_box_width"
-            android:layout_height="@dimen/ip_box_height" />
-
-        <TextView
-            android:text="@string/str_dot"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <EditText
-            android:id="@+id/et_ip_4th"
-            android:textSize="@dimen/ip_box_text_size"
-            android:inputType="numberDecimal"
-            android:layout_width="@dimen/ip_box_width"
+            android:layout_width="@dimen/bt_box_width"
             android:layout_height="@dimen/ip_box_height" />
 
         <TextView
@@ -58,33 +21,54 @@
             android:layout_height="wrap_content" />
 
         <EditText
-            android:id="@+id/et_ip_port"
+            android:id="@+id/et_btaddr_2nd"
             android:textSize="@dimen/ip_box_text_size"
-            android:inputType="numberDecimal"
-            android:layout_width="@dimen/port_box_width"
+            android:layout_width="@dimen/bt_box_width"
             android:layout_height="@dimen/ip_box_height" />
 
-    </LinearLayout>
+        <TextView
+            android:text="@string/str_colon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
-    <Button
-        android:id="@+id/btn_address_set"
-        android:text="@string/str_connect"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/et_btaddr_3rd"
+            android:textSize="@dimen/ip_box_text_size"
+            android:layout_width="@dimen/bt_box_width"
+            android:layout_height="@dimen/ip_box_height" />
 
-    <TextView
-        android:id="@+id/tv_scanning"
-        android:text="@string/str_scanning_0"
-        android:textSize="@dimen/scanning_text_size"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <TextView
+            android:text="@string/str_colon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
-    <LinearLayout
-        android:id="@+id/ll_address_list_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        <EditText
+            android:id="@+id/et_btaddr_4th"
+            android:textSize="@dimen/ip_box_text_size"
+            android:layout_width="@dimen/bt_box_width"
+            android:layout_height="@dimen/ip_box_height" />
 
+        <TextView
+            android:text="@string/str_colon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/et_btaddr_5th"
+            android:textSize="@dimen/ip_box_text_size"
+            android:layout_width="@dimen/bt_box_width"
+            android:layout_height="@dimen/ip_box_height" />
+
+        <TextView
+            android:text="@string/str_colon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/et_btaddr_6th"
+            android:textSize="@dimen/ip_box_text_size"
+            android:layout_width="@dimen/bt_box_width"
+            android:layout_height="@dimen/ip_box_height" />
 
     </LinearLayout>
 

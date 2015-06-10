@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.gogo.sampleconnector.R;
 import com.gogo.sampleconnector.connector.Controller;
 
 

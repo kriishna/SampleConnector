@@ -10,7 +10,7 @@ public abstract class ScanningRunnable implements Runnable {
 
     protected boolean isScanning;
 
-    public static final int ADDRESS_UPDATE_MESSAGE = 0x01;
+    public static final int FOUND_ADDRESS_UPDATE_MESSAGE = 0x01;
 
     protected FlashingItem flashingItem;
 
