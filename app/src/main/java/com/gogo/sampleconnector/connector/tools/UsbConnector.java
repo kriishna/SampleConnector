@@ -10,9 +10,9 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Message;
-import android.util.Log;
 
 import com.gogo.sampleconnector.connector.ConnectFailException;
+import com.gogo.sampleconnector.connector.ConnectionInformation;
 
 import java.io.IOException;
 
@@ -70,8 +70,8 @@ public class UsbConnector extends BaseConnector {
             result = false;
             Message message = mHandler.obtainMessage();
             message.what = BaseConnector.CONNECT_STATUS;
-            message.arg1 = ConnectionStatus.FAIL;
-            message.obj = ConnectionStatus.NO_DEVICE;
+            message.arg1 = ConnectionInformation.ConnectionStatus.FAIL.Value;
+            message.obj = ConnectionInformation.ConnectionResult.NO_DEVICE;
             message.sendToTarget();
         }
 
@@ -90,13 +90,13 @@ public class UsbConnector extends BaseConnector {
         message.what = BaseConnector.CONNECT_STATUS;
         try {
             if (hasPermission) {
-                message.arg1 = ConnectionStatus.SUCCEED;
+                message.arg1 = ConnectionInformation.ConnectionStatus.SUCCEED.Value;
                 usbController.setDeviceInfo(usbDevice, usbManager);
             } else {
-                throw new ConnectFailException(ConnectionStatus.NO_PERMISSION);
+                throw new ConnectFailException(ConnectionInformation.ConnectionResult.NO_PERMISSION);
             }
         } catch (ConnectFailException e) {
-            message.arg1 = ConnectionStatus.FAIL;
+            message.arg1 = ConnectionInformation.ConnectionStatus.FAIL.Value;
             message.obj = e.getMessage();
         }
         message.sendToTarget();

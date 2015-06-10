@@ -33,16 +33,8 @@ public class WiFiBroadcastRunnable extends ScanningRunnable {
     @Override
     public void run() {
         try {
-            // Check wifi is connected.
-            ConnectivityManager cManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            if (!cManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected()) {
-                // TODO: warning wifi is off
-                Log.e(TAG, "WiFi is off.");
-                return;
-            }
-
             // Notice user the scanning is running
-            Thread t = new Thread(flashingItem, "Scanning");
+            Thread t = new Thread(flashingItem, "ScanningSubnet");
             t.start();
 
             WifiManager wManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);

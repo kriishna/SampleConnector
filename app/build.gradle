@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.gogo.sampleconnector"
-        minSdkVersion 10
+        minSdkVersion 11
         targetSdkVersion 21
         versionCode 102
         versionName "1.02"

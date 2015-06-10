@@ -2,6 +2,7 @@ package com.gogo.sampleconnector.connector.tools;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -14,6 +15,7 @@ import android.widget.LinearLayout;
 
 import com.gogo.sampleconnector.R;
 import com.gogo.sampleconnector.connector.ConnectFailException;
+import com.gogo.sampleconnector.connector.ConnectionInformation;
 import com.gogo.sampleconnector.connector.scantools.FlashingTextView;
 import com.gogo.sampleconnector.connector.scantools.ScanningRunnable;
 import com.gogo.sampleconnector.connector.scantools.WiFiBroadcastRunnable;
@@ -57,6 +59,18 @@ public class WiFiConnector extends ScannableConnector {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         dialogTitle = "Connect by wifi ...";
+
+        // Check wifi is connected.
+        ConnectivityManager cManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (!cManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected()) {
+            Message message = mHandler.obtainMessage();
+            message.what = BaseConnector.CONNECT_STATUS;
+            message.arg1 = ConnectionInformation.ConnectionStatus.FAIL.Value;
+            message.obj = ConnectionInformation.ConnectionResult.WIFI_IS_DISABLED;
+            message.sendToTarget();
+            return null;
+        }
+
         return super.onCreateDialog(savedInstanceState);
     }
 
@@ -173,12 +187,15 @@ public class WiFiConnector extends ScannableConnector {
                     controller.setupConnection(wifiSocket);
                 } else {
                     Log.e(TAG, "Socket is not connected.");
-                    sendConnectResultMessage(false, new ConnectFailException(ConnectionStatus.FAIL_ESTABLISH));
+                    sendConnectResultMessage(false, new ConnectFailException(
+                            ConnectionInformation.ConnectionResult.FAIL_ESTABLISH));
                 }
             } catch (UnknownHostException e) {
-                sendConnectResultMessage(false, new ConnectFailException(ConnectionStatus.ADDRESS_UNKNOWN));
+                sendConnectResultMessage(false, new ConnectFailException(
+                        ConnectionInformation.ConnectionResult.ADDRESS_UNKNOWN));
             } catch (NullPointerException|IOException e) {
-                sendConnectResultMessage(false, new ConnectFailException(ConnectionStatus.FAIL_ESTABLISH));
+                sendConnectResultMessage(false, new ConnectFailException(
+                        ConnectionInformation.ConnectionResult.FAIL_ESTABLISH));
                 Log.e(TAG, "Failed to connect by WiFi: " + e);
             }
         }
@@ -188,9 +205,9 @@ public class WiFiConnector extends ScannableConnector {
             message.what = BaseConnector.CONNECT_STATUS;
 
             if (result) {
-                message.arg1 = ConnectionStatus.SUCCEED;
+                message.arg1 = ConnectionInformation.ConnectionStatus.SUCCEED.Value;
             } else {
-                message.arg1 = ConnectionStatus.FAIL;
+                message.arg1 = ConnectionInformation.ConnectionStatus.FAIL.Value;
                 message.obj = exception.getMessage();
             }
             message.sendToTarget();

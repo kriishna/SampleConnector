@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +17,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.gogo.sampleconnector.R;
+import com.gogo.sampleconnector.connector.ConnectionInformation;
 import com.gogo.sampleconnector.connector.scantools.BluetoothScanningRunnable;
 import com.gogo.sampleconnector.connector.scantools.FlashingTextView;
 import com.gogo.sampleconnector.connector.scantools.ScanningRunnable;
@@ -23,8 +25,6 @@ import com.gogo.sampleconnector.connector.scantools.ScanningRunnable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Sii Bluetooth Connector
@@ -32,7 +32,8 @@ import java.util.concurrent.Executors;
 public class BluetoothConnector extends ScannableConnector {
     final static String TAG = BluetoothConnector.class.getSimpleName();
 
-    BluetoothController bluetoothController;
+    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothController bluetoothController;
 
     public static UUID PRINTER_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
 
@@ -56,6 +57,17 @@ public class BluetoothConnector extends ScannableConnector {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         dialogTitle = "Connect by bluetooth ...";
+
+        /* Check bluetooth device */
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (null == mBluetoothAdapter) {
+            // TODO: pop bluetooth not support warning
+            Log.e(TAG, "Bluetooth not support!");
+            return null;
+        } else if (!mBluetoothAdapter.isEnabled()) {
+            startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+            return null;
+        }
         return super.onCreateDialog(savedInstanceState);
     }
 
@@ -68,8 +80,8 @@ public class BluetoothConnector extends ScannableConnector {
         return new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "Index " + position + " is clicked: " + list.get(position));
-                connect(list.get(position));
+                String info = list.get(position);
+                connect(info.substring(info.length() - 17));
                 performSelect();
             }
         };
@@ -77,7 +89,7 @@ public class BluetoothConnector extends ScannableConnector {
 
     protected ScanningRunnable setupScanningRunnable() {
         FlashingTextView flashitem = new FlashingTextView(getActivity(), 300, flashingHandler);
-        return new BluetoothScanningRunnable(handler, getActivity(), flashitem);
+        return new BluetoothScanningRunnable(handler, mBluetoothAdapter, getActivity(), flashitem);
     }
 
     protected LinearLayout setupAddressEditor() {
@@ -127,7 +139,6 @@ public class BluetoothConnector extends ScannableConnector {
      */
     private void connect(String addr) {
         bluetoothController = new BluetoothController();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(new ConnectRunnable(bluetoothController, addr));
 
     }
@@ -135,6 +146,8 @@ public class BluetoothConnector extends ScannableConnector {
     @Override
     protected boolean performSelect() {
         final boolean result = super.performSelect();
+        if (null != scanningRunnable) scanningRunnable.stopScanning();
+        executor.shutdown();
         BluetoothConnector.this.dismiss();
         return result;
     }
@@ -166,6 +179,14 @@ public class BluetoothConnector extends ScannableConnector {
 
         @Override
         public void run() {
+            /* Notice user the connection is building */
+
+            Message waiting = mHandler.obtainMessage();
+            waiting.what = BaseConnector.CONNECT_STATUS;
+            waiting.arg1 = ConnectionInformation.ConnectionStatus.BUILDING.Value;
+            waiting.obj = ConnectionInformation.ConnectionResult.BUILDING_CONNECTION;
+            waiting.sendToTarget();
+
             BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
             BluetoothDevice device = adapter.getRemoteDevice(address);
             Message message = mHandler.obtainMessage();
@@ -174,11 +195,11 @@ public class BluetoothConnector extends ScannableConnector {
                 BluetoothSocket socket = device.createRfcommSocketToServiceRecord(PRINTER_UUID);
                 socket.connect();
                 controller.setupConnection(socket);
-                message.arg1 = ConnectionStatus.SUCCEED;
+                message.arg1 = ConnectionInformation.ConnectionStatus.SUCCEED.Value;
                 message.sendToTarget();
             } catch (IOException e) {
-                message.arg1 = ConnectionStatus.FAIL;
-                message.obj = ConnectionStatus.FAIL_ESTABLISH;
+                message.arg1 = ConnectionInformation.ConnectionStatus.FAIL.Value;
+                message.obj = ConnectionInformation.ConnectionResult.FAIL_ESTABLISH;
                 Log.e(TAG, "Failed to build bluetooth connection: " + e);
                 message.sendToTarget();
             }

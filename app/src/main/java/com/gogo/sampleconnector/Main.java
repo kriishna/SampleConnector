@@ -15,6 +15,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.gogo.sampleconnector.connector.ConnectionInformation;
 import com.gogo.sampleconnector.connector.Connector;
 import com.gogo.sampleconnector.connector.Controller;
 import com.gogo.sampleconnector.connector.tools.BaseConnector;
@@ -187,9 +188,11 @@ public class Main extends Activity {
                     });
                     fragment.setOnConnectionEstablishedListener(new BaseConnector.OnConnectionEstablishedListener() {
                         @Override
-                        public void onConnectionEstablish(boolean result, String reason, BaseConnector connector) {
-                            String popMessage = "";
-                            if (result) {
+                        public void onConnectionEstablish(ConnectionInformation.ConnectionStatus status,
+                                                          String reason,
+                                                          BaseConnector connector) {
+                            String popMessage;
+                            if (status == ConnectionInformation.ConnectionStatus.SUCCEED) {
                                 popMessage = "Connection established";
                                 stackMessage("Connection is established: " + connector.getConnectorType(), DEBUG);
                                 // If connection is established, set up OnMessageReceivedListener
@@ -201,6 +204,8 @@ public class Main extends Activity {
                                     }
                                 });
                                 controller.beginReceiving();
+                            } else if (status == ConnectionInformation.ConnectionStatus.BUILDING) {
+                                popMessage = reason;
                             } else {
                                 controller = null;
                                 popMessage = reason;

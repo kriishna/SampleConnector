@@ -9,8 +9,6 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 
-import com.gogo.sampleconnector.connector.Controller;
-
 import java.io.IOException;
 import java.util.concurrent.Executors;
 
